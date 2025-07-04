@@ -1,0 +1,187 @@
+{% extends 'scraper/base.html' %}
+
+{% block title %}Results - {{ scrape_history.title|truncatechars:50 }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Header -->
+        <div class="glass-card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-white mb-0">
+                    <i class="fas fa-chart-line me-2"></i>Scraping Results
+                </h2>
+                <a href="{% url 'index' %}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Home
+                </a>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="text-white">{{ scrape_history.title }}</h5>
+                    <p class="text-white-50">{{ scrape_history.url }}</p>
+                    <p class="text-white-50">
+                        <i class="fas fa-clock me-1"></i>{{ scrape_history.scraped_at|date:"M d, Y H:i" }}
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <span class="badge-custom">
+                        <i class="fas fa-check-circle me-1"></i>{{ scrape_history.status|title }}
+                    </span>
+                    {% if scrape_history.status == 'failed' and scrape_history.error_message %}
+                        <p class="text-danger mt-2">{{ scrape_history.error_message }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% if scrape_history.status == 'success' %}
+        <!-- Statistics -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">{{ scrape_history.content_json.total_links|default:0 }}</div>
+                    <div class="text-white">Links Found</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">{{ scrape_history.content_json.headings|length|default:0 }}</div>
+                    <div class="text-white">Headings</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">{{ scrape_history.content_json.total_images|default:0 }}</div>
+                    <div class="text-white">Images</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">{{ scrape_history.content_json.total_paragraphs|default:0 }}</div>
+                    <div class="text-white">Paragraphs</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Results -->
+        <div class="glass-card">
+            <div class="accordion" id="resultsAccordion">
+                <!-- Meta Information -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="metaHeading">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#metaCollapse">
+                            <i class="fas fa-info-circle me-2"></i>Meta Information
+                        </button>
+                    </h2>
+                    <div id="metaCollapse" class="accordion-collapse collapse show" data-bs-parent="#resultsAccordion">
+                        <div class="accordion-body">
+                            <p><strong>Title:</strong> {{ scrape_history.content_json.title|default:"N/A" }}</p>
+                            {% if scrape_history.content_json.description %}
+                            <p><strong>Description:</strong> {{ scrape_history.content_json.description }}</p>
+                            {% endif %}
+                            <p><strong>Scraped At:</strong> {{ scrape_history.content_json.scraped_at|default:"N/A" }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Headings -->
+                {% if scrape_history.content_json.headings %}
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingsHeading">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#headingsCollapse">
+                            <i class="fas fa-heading me-2"></i>Headings ({{ scrape_history.content_json.headings|length }})
+                        </button>
+                    </h2>
+                    <div id="headingsCollapse" class="accordion-collapse collapse" data-bs-parent="#resultsAccordion">
+                        <div class="accordion-body">
+                            {% for heading in scrape_history.content_json.headings %}
+                            <div class="list-group-item">
+                                <span class="badge bg-secondary">{{ heading.tag|upper }}</span>
+                                {{ heading.text }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Links -->
+                {% if scrape_history.content_json.links %}
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="linksHeading">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#linksCollapse">
+                            <i class="fas fa-link me-2"></i>Links ({{ scrape_history.content_json.links|length }})
+                        </button>
+                    </h2>
+                    <div id="linksCollapse" class="accordion-collapse collapse" data-bs-parent="#resultsAccordion">
+                        <div class="accordion-body">
+                            {% for link in scrape_history.content_json.links %}
+                            <div class="list-group-item">
+                                <a href="{{ link.url }}" target="_blank" class="text-decoration-none">
+                                    {{ link.text }}
+                                    <i class="fas fa-external-link-alt ms-2"></i>
+                                </a>
+                                <br>
+                                <small class="text-muted">{{ link.url }}</small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Images -->
+                {% if scrape_history.content_json.images %}
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="imagesHeading">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#imagesCollapse">
+                            <i class="fas fa-image me-2"></i>Images ({{ scrape_history.content_json.images|length }})
+                        </button>
+                    </h2>
+                    <div id="imagesCollapse" class="accordion-collapse collapse" data-bs-parent="#resultsAccordion">
+                        <div class="accordion-body">
+                            <div class="row">
+                                {% for image in scrape_history.content_json.images %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card">
+                                        <img src="{{ image.src }}" class="card-img-top" alt="{{ image.alt }}" style="height: 200px; object-fit: cover;">
+                                        <div class="card-body">
+                                            <p class="card-text">
+                                                <small class="text-muted">{{ image.alt|default:"No alt text" }}</small>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Content -->
+                {% if scrape_history.content_json.paragraphs %}
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="contentHeading">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#contentCollapse">
+                            <i class="fas fa-paragraph me-2"></i>Content ({{ scrape_history.content_json.paragraphs|length }} paragraphs)
+                        </button>
+                    </h2>
+                    <div id="contentCollapse" class="accordion-collapse collapse" data-bs-parent="#resultsAccordion">
+                        <div class="accordion-body">
+                            {% for paragraph in scrape_history.content_json.paragraphs %}
+                            <div class="list-group-item">
+                                <p>{{ paragraph }}</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

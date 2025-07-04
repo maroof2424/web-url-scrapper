@@ -1,0 +1,92 @@
+{% extends 'scraper/base.html' %}
+
+{% block title %}Home - Django Web Scraper{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Main Form -->
+        <div class="glass-card text-center">
+            <h1 class="text-white mb-4">
+                <i class="fas fa-spider me-3"></i>Web Scraper
+            </h1>
+            <p class="text-white mb-4">Enter any URL to extract and analyze its content</p>
+            
+            <form method="post" class="mb-4">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-8">
+                        {{ form.url }}
+                        {% if form.url.errors %}
+                            <div class="text-danger mt-2">
+                                {% for error in form.url.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-2"></i>Scrape Website
+                        </button>
+                    </div>
+                </div>
+            </form>
+            
+            <div class="row text-center">
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <i class="fas fa-link fa-2x text-white mb-2"></i>
+                        <h5 class="text-white">Extract Links</h5>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <i class="fas fa-heading fa-2x text-white mb-2"></i>
+                        <h5 class="text-white">Get Headings</h5>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <i class="fas fa-image fa-2x text-white mb-2"></i>
+                        <h5 class="text-white">Find Images</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Scrapes -->
+        {% if recent_scrapes %}
+        <div class="glass-card">
+            <h3 class="text-white mb-4">
+                <i class="fas fa-history me-2"></i>Recent Scrapes
+            </h3>
+            <div class="row">
+                {% for scrape in recent_scrapes %}
+                <div class="col-md-6 mb-3">
+                    <div class="result-card">
+                        <h6 class="card-title">{{ scrape.title|truncatechars:50 }}</h6>
+                        <p class="card-text" style="color: white;">
+                            <small>{{ scrape.url|truncatechars:40 }}</small>
+                        </p>
+                        <p class="card-text" style="color: white;">
+                            <small>{{ scrape.scraped_at|date:"M d, Y H:i" }}</small>
+                        </p>
+                        <p class="card-text" style="color: white;">
+                            <small>Status: {{ scrape.status|title }}</small>
+                            {% if scrape.status == 'failed' and scrape.error_message %}
+                                <br><small class="text-danger">Error: {{ scrape.error_message|truncatechars:50 }}</small>
+                            {% endif %}
+                        </p>
+                        <a href="{% url 'results' scrape.pk %}" class="btn btn-sm btn-outline-primary">
+                            View Results
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
